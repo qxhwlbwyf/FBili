@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.taru.Bili.dao.IUserDao">
+    <resultMap id="BaseResultMap" type="com.taru.Bili.entity.User">
+        <id property="id" column="id" jdbcType="INTEGER"></id>
+        <result property="username" column="username" jdbcType="VARCHAR"></result>
+        <result property="password" column="password" jdbcType="VARCHAR"></result>
+        <result property="headimg" column="headimg" jdbcType="VARCHAR"></result>
+        <result property="birth" column="birth" jdbcType="VARCHAR"></result>
+        <result property="autograph" column="autograph" jdbcType="LONGVARCHAR"></result>
+        <result property="sex" column="sex" jdbcType="INTEGER"></result>
+        <result property="status" column="status" jdbcType="INTEGER"></result>
+        <result property="deleted" column="deleted" jdbcType="INTEGER"></result>
+        <result property="modifiedTime" column="modified_time" jdbcType="TIMESTAMP"></result>
+    </resultMap>
+    <resultMap id="VoResultMap" type="com.taru.Bili.entity.Vo.UserVo" extends="BaseResultMap">
+        <collection property="Followers" ofType="com.taru.Bili.entity.UserFollower">
+            <id property="id" column="fid" jdbcType="INTEGER"></id>
+            <result property="username" column="fusername" jdbcType="VARCHAR"></result>
+            <result property="headimg" column="fheadimg" jdbcType="VARCHAR"></result>
+            <result property="birth" column="fbirth" jdbcType="VARCHAR"></result>
+            <result property="autograph" column="fautograph" jdbcType="LONGVARCHAR"></result>
+            <result property="sex" column="fsex" jdbcType="INTEGER"></result>
+            <result property="status" column="fstatus" jdbcType="INTEGER"></result>
+            <result property="deleted" column="fdeleted" jdbcType="INTEGER"></result>
+            <collection property="News" ofType="com.taru.Bili.entity.News">
+                <id property="vid" column="vid" jdbcType="INTEGER"></id>
+                <result property="videoname" column="videoname" jdbcType="VARCHAR"></result>
+                <result property="videosrc" column="videosrc" jdbcType="VARCHAR"></result>
+                <result property="imagesrc" column="imagesrc" jdbcType="VARCHAR"></result>
+                <result property="uid" column="uid" jdbcType="INTEGER"></result>
+                <result property="sort" column="sort" jdbcType="VARCHAR"></result>
+                <result property="hits" column="hits" jdbcType="INTEGER"></result>
+                <result property="deleted" column="vdeleted" jdbcType="INTEGER"></result>
+                <result property="modifiedTime" column="vmodified_time" jdbcType="TIMESTAMP"></result>
+            </collection>
+        </collection>
+    </resultMap>
+
+<!--用户登录-->
+    <select id="land" parameterType="User" resultType="User">
+        SELECT u.id,u.username,u.headimg,u.birth,u.autograph,u.sex,u.status,u.deleted,u.modified_time FROM `bili_user` as u
+         where u.username=#{username,jdbcType=VARCHAR} and u.`password`=#{password,jdbcType=VARCHAR} and u.`status`=1 and u.deleted=0
+    </select>
+    <update id="land1" parameterType="int">
+        update bili_user as bu set bu.status=0 where bu.id=#{id}
+    </update>
+    <select id="land2" parameterType="int" resultType="User">
+        SELECT u.id,u.username,u.headimg,u.birth,u.autograph,u.sex,u.status,u.deleted,u.modified_time FROM `bili_user` as u
+         where u.id=#{id}
+    </select>
+<!--用户退出-->
+    <update id="logout" parameterType="User">
+        UPDATE `bili_user` AS bu
+        SET bu.`status` = 1
+        WHERE
+            bu.id =#{id,jdbcType=INTEGER}
+    </update>
+<!--用户注册-->
+    <insert id="register" parameterType="User">
+        insert into `bili_user` (username,`password`,headimg,birth,autograph,sex,status)
+        values (
+        #{username,jdbcType=VARCHAR},
+        #{password,jdbcType=VARCHAR},
+        #{headimg,jdbcType=VARCHAR},
+        #{birth,jdbcType=VARCHAR},
+        #{autograph,jdbcType=LONGVARCHAR},
+        #{sex,jdbcType=INTEGER},
+        1)
+    </insert>
+<!--用户注销-->
+    <update id="delete" parameterType="User">
+        UPDATE `bili_user` AS bu SET bu.deleted = 1 where bu.id=#{id,jdbcType=INTEGER}
+    </update>
+<!--根据id查询用户-->
+    <select id="selectId" parameterType="int" resultType="User">
+        SELECT u.id,u.username,u.headimg,u.birth,u.autograph,u.sex,u.status,u.deleted,u.modified_time FROM `bili_user` as u where u.id=#{id}
+    </select>
+<!--根据名称查询用户-->
+    <select id="selectUser" parameterType="string" resultMap="BaseResultMap">
+        select u.id,u.username,u.headimg,u.birth,u.autograph,u.sex,u.status,u.deleted,u.modified_time from bili_user as u where u.username like concat('%',#{username},'%') and u.deleted=0
+    </select>
+<!---->
+<!--添加关注-->
+    <insert id="addFollow">
+        insert into `bili_user_user_follow` (uid,followerid)
+        values (
+        #{uid,jdbcType=INTEGER},
+        #{followerid,jdbcType=INTEGER}
+        )
+    </insert>
+<!--取消关注-->
+    <delete id="deleteFollow">
+        delete buuf from bili_user_user_follow as buuf where buuf.uid=#{uid,jdbcType=INTEGER} and buuf.followerid=#{followerid,jdbcType=INTEGER}
+    </delete>
+<!--查询关注-->
+    <select id="selectFollow" parameterType="int" resultMap="VoResultMap">
+        SELECT
+            b.*,
+            u.id fid,
+            u.username fusername,
+            u.headimg fheadimg,
+            u.birth fbirth,
+            u.autograph fautograph,
+            u.sex fsex,
+            u.`status` fstatus,
+            u.deleted fdeleted
+        FROM
+            ( SELECT bu.*, buuf.followerid FROM bili_user AS bu LEFT JOIN bili_user_user_follow AS buuf ON buuf.uid = bu.id ) AS b
+            LEFT JOIN `bili_user` AS u ON u.id = b.followerid
+        WHERE
+            b.id = #{id}
+    </select>
+<!--查看动态 -->
+    <select id="selectNews" parameterType="int" resultMap="VoResultMap">
+        SELECT
+            bu.*,
+            bv.vid,
+            bv.videoname,
+            bv.videosrc,
+            bv.imagesrc,
+            bv.uid,
+            bv.sort,
+            bv.hits,
+            bv.deleted vdeleted,
+            bv.modified_time vmodified_time,
+            u.id fid,
+            u.username fusername,
+            u.headimg fheadimg,
+            u.birth fbirth,
+            u.autograph fautograph,
+            u.sex fsex,
+            u.`status` fstatus,
+            u.deleted fdeleted
+        FROM
+            bili_user AS bu
+            LEFT JOIN bili_user_user_follow AS buuf ON buuf.uid = bu.id
+            LEFT JOIN `bili_user` AS u ON u.id = buuf.followerid
+            LEFT JOIN bili_video AS bv ON buuf.followerid = bv.uid
+        WHERE
+            bu.id = #{id}
+    </select>
+
+
+</mapper>

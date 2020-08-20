@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.taru.Bili.dao.IVideoDao">
+    <resultMap id="BaseVideoResult" type="com.taru.Bili.entity.Video">
+        <id property="vid" column="vid" jdbcType="INTEGER"></id>
+        <result property="videoname" column="videoname" jdbcType="VARCHAR"></result>
+        <result property="videosrc" column="videosrc" jdbcType="VARCHAR"></result>
+        <result property="imagesrc" column="imagesrc" jdbcType="VARCHAR"></result>
+        <result property="uid" column="uid" jdbcType="INTEGER"></result>
+        <result property="sortid" column="sort" jdbcType="VARCHAR"></result>
+        <result property="hits" column="hits" jdbcType="INTEGER"></result>
+        <result property="deleted" column="deleted" jdbcType="INTEGER"></result>
+        <result property="modifiedTime" column="modified_time" jdbcType="TIMESTAMP"></result>
+    </resultMap>
+    <resultMap id="BaseSortResult" type="com.taru.Bili.entity.Sort">
+        <id property="id" column="id" jdbcType="INTEGER"></id>
+        <result property="sortName" column="sortname" jdbcType="VARCHAR"></result>
+        <collection property="Videos" ofType="com.taru.Bili.entity.Video">
+            <id property="vid" column="vid" jdbcType="INTEGER"></id>
+            <result property="videoname" column="videoname" jdbcType="VARCHAR"></result>
+            <result property="videosrc" column="videosrc" jdbcType="VARCHAR"></result>
+            <result property="imagesrc" column="imagesrc" jdbcType="VARCHAR"></result>
+            <result property="uid" column="uid" jdbcType="INTEGER"></result>
+            <result property="sortid" column="sort" jdbcType="VARCHAR"></result>
+            <result property="hits" column="hits" jdbcType="INTEGER"></result>
+            <result property="deleted" column="deleted" jdbcType="INTEGER"></result>
+            <result property="modifiedTime" column="modified_time" jdbcType="TIMESTAMP"></result>
+        </collection>
+    </resultMap>
+<!--   查询个人上传视频-->
+    <select id="selectUserVideo" parameterType="int" resultMap="BaseVideoResult">
+        SELECT * FROM `bili_video` where uid=#{uid}
+    </select>
+<!--查询视频-->
+    <select id="selectVideo" resultMap="BaseVideoResult">
+        select * from bili_video as bv where bv.deleted=0
+         <if test="videoname!=null and videoname!=''">
+             and videoname like concat('%',#{videoname},'%')
+         </if>
+    </select>
+<!--查询 分类-->
+    <select id="selectSort" resultMap="BaseSortResult">
+        select * from bili_sort
+    </select>
+<!--根据分类查询视频-->
+    <select id="selectBySort" parameterType="int" resultMap="BaseSortResult">
+        select * from bili_sort as bs left join bili_video as bv on bv.sort=bs.id where bs.id=#{sortid} and bv.deleted=0
+    </select>
+<!--    查看视频-->
+    <select id="watchvideo" parameterType="int" resultMap="BaseVideoResult">
+        SELECT * FROM `bili_video` as bv where bv.vid=#{vid}
+    </select>
+<!--增加点击量-->
+    <update id="updateHits" parameterType="int">
+        UPDATE `bili_video` AS bu SET bu.hits = bu.hits+1  WHERE bu.vid = #{vid}
+    </update>
+<!--下架视频-->
+    <update id="deleteVideo" parameterType="int">
+        UPDATE `bili_video` AS bv SET bv.deleted =  1 where bv.vid=#{vid}
+    </update>
+<!--   上传视频 -->
+    <insert id="addVideo" parameterType="Video">
+        insert into `bili_video` (videoname,videosrc,imagesrc,uid,sort)
+        values (
+        #{videoname,jdbcType=VARCHAR},
+        #{videosrc,jdbcType=VARCHAR},
+        #{imagesrc,jdbcType=VARCHAR},
+        #{uid,jdbcType=INTEGER},
+        #{sortid,jdbcType=INTEGER})
+    </insert>
+<!--收藏视频-->
+    <insert id="collection">
+        insert into `bili_user_video_collection` (uid,vid)
+        values (#{uid,jdbcType=INTEGER},#{vid,jdbcType=INTEGER})
+    </insert>
+<!--    查询收藏-->
+    <select id="selectCollection" parameterType="int" resultMap="BaseVideoResult">
+        SELECT
+            *
+        FROM
+            (
+            SELECT
+                buv.uid userid,
+                bv.*
+            FROM
+                bili_user_video_collection AS buv
+                LEFT JOIN bili_video AS bv ON buv.vid = bv.vid
+            ) AS b
+        WHERE
+            b.userid = #{uid}
+            AND b.deleted =0
+    </select>
+<!--    取消收藏-->
+    <delete id="remove">
+        delete buvc from bili_user_video_collection as buvc where buvc.uid=#{uid,jdbcType=INTEGER} and buvc.vid=#{vid,jdbcType=INTEGER}
+    </delete>
+
+
+
+
+</mapper>

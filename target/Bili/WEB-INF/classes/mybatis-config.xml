@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!--
+第一行是XML声明，指定字符集；
+
+<configuration>：Mybatis配置文件的根元素为
+
+<environment>：用来配置Mybatis的环境，即连接的数据库。         可创建多个，用于不同场景，根据 id 区分使用
+
+<transationManager>：配置Mybatis的事务管理
+
+<dataSource>：数据源，Mybatis推荐使用数据源（维持着一个连接池，而不用每次连接都开启一个连接）来管理数据库连接。
+
+而dataSource下的属性相信你已经懂了（如果你学过JDBC的配置）
+-->
+<configuration>
+
+<!--    <properties resource="jdbc.properties"></properties>-->
+
+    <!-- 别名配置-->
+    <typeAliases>
+<!--        用于单一类-->
+        <typeAlias type="com.taru.Bili.entity.User" alias="User"></typeAlias>
+        <typeAlias type="com.taru.Bili.entity.Video" alias="Video"></typeAlias>
+<!--        用于整个包-->
+<!--        <package name="com.taru.emall.entity.User"/>-->
+    </typeAliases>
+    <!-- 分页插件   理论上不写分页SQL，那是不可能做成分页的 原理一定是它动了你的SQL-->
+    <plugins>
+        <!-- com.github.pagehelper为PageHelper类所在包名 -->
+        <plugin interceptor="com.github.pagehelper.PageHelper">
+            <!-- 方言-->
+            <property name="dialect" value="mysql"/>
+        </plugin>
+    </plugins>
+    <!--环境配置，连接的数据库-->
+<!--    <environments default="development">-->
+<!--        <environment id="development">-->
+<!--            &lt;!&ndash;指定事务管理的类型，这里简单使用Java的JDBC的提交和回滚设置&ndash;&gt;-->
+<!--            <transactionManager type="JDBC"></transactionManager>-->
+<!--            &lt;!&ndash;dataSource 指连接源配置，POOLED是JDBC连接对象的数据源连接池的实现&ndash;&gt;-->
+<!--            <dataSource type="POOLED">-->
+<!--                <property name="driver" value="${driver}"></property>-->
+<!--                <property name="url" value="${url}"></property>-->
+<!--                <property name="username" value="${username}"></property>-->
+<!--                <property name="password" value="${password}"></property>-->
+<!--            </dataSource>-->
+<!--        </environment>-->
+<!--    </environments>-->
+    <mappers>                                   <!--这是告诉Mybatis区哪找持久化类的映射文件，对于在src下的文件直接写文件名-->
+        <mapper resource="mapper/UserMapper.xml"></mapper>          <!--如果在某包下，则要写明路径,如：com/mybatistest/config/User.xml-->
+        <mapper resource="mapper/VideoMapper.xml"></mapper>
+        <mapper resource="mapper/CollectionMapper.xml"></mapper>
+    </mappers>
+</configuration>

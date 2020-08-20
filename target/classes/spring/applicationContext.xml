@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/mvc
+                           https://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd">
+    <!-- 在classpath 读取属性配置文件-->
+    <context:property-placeholder ignore-unresolvable="true" location="classpath:jdbc.properties"/>
+    <!-- 数据源  连接池-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!--配置连接池属性-->
+        <!--配置驱动类名字-->
+        <property name="driverClassName" value="${jdbc.driver}" />
+        <!-- 基本属性 url、user、password -->
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="1" />
+        <property name="minIdle" value="1" />
+        <property name="maxActive" value="20" />
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <!-- 验证连接有效与否的SQL，不同的数据配置不同 -->
+        <property name="validationQuery" value="select 1 from dual " />
+
+    </bean>
+
+    <!-- 依赖注入 数据源-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 加载 MyBatis 的配置文件 -->
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+
+    </bean>
+
+    <!-- 第二种配置无dao层-->
+    <!--4 自动扫描对象关系映射 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--指定会话工厂，如果当前上下文中只定义了一个则该属性可省去 -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        <!-- 指定要自动扫描接口的基础包，生成代理daoImpl 并且注册在spintIOC容器中   -->
+        <property name="basePackage" value="com.taru.Bili.dao"></property>
+    </bean>
+<!--通过注解的方式，扫描ServiceBean，加入到IOC容器中；相当于<bean id="..." class="...">-->
+    <context:component-scan base-package="com.taru.Bili.service.Impl"/>
+
+
+</beans>

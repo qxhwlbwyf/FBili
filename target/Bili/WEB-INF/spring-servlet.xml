@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/mvc
+                           https://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--
+    该文件内配置Bean清单，搭建组装（注入）过程
+    在main方法中，使用Spring框架，使用 ApplicationContext 名 = new ClassPathXmlApplicationContext("Spring框架的xml文件名");解析配置文件，初始化一个容器
+    使用  名.getBean("Bean名"，返回的数据类型)  获取Bean，相当于返回获取对应实例
+    -->
+
+<!--注解驱动-->
+<!--    修改头部声明注解有效，开启注解，同时告知配置文件注解所在的包路径-->
+    <!--扫描Controller,并将其生命周期纳入Spring管理-->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.taru.Bili.controller"/>
+    <!--注解驱动，以使得访问路径与方法的匹配可以通过注解配置-->
+    <mvc:annotation-driven/>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8"></property>
+        <property name="maxUploadSize" value="888888888"></property>
+    </bean>
+
+    <!--上传文件路径（临时解决方案）-->
+    <bean id="videosrc" class="java.lang.String">
+        <constructor-arg value="G:\bili\video"></constructor-arg>
+    </bean>
+    <bean id="imagesrc" class="java.lang.String">
+        <constructor-arg value="G:\bili\image"></constructor-arg>
+    </bean>
+    <bean id="headimg" class="java.lang.String">
+        <constructor-arg value="G:\bili\headimg"></constructor-arg>
+    </bean>
+</beans>
